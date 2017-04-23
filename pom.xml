@@ -79,5 +79,45 @@
             <version>1.2</version>
             <scope>runtime</scope>
         </dependency>
+
+
+        <!--增加JUnit单元测试框架-->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!--添加SLF4J依赖，用于提供日志API，且使用Log4j作为实现-->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.7.7</version>
+        </dependency>
+
+        <!--添加MySQL依赖，用户提供JDBC实现-->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>5.1.40</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!--添加两个Apache COmmons依赖，用户提供常用的工具类-->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.4</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-collections</groupId>
+            <artifactId>commons-collections</artifactId>
+            <version>3.2.1</version>
+        </dependency>
+
+
     </dependencies>
+
+
 </project>
