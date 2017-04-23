@@ -61,7 +61,7 @@ public  final class PropsUtil {
         return getString(pros,key,"");
     }
 
-    private static String getString(Properties pros, String key, String defaultValus) {
+    public static String getString(Properties pros, String key, String defaultValus) {
         String value = defaultValus;
         if (pros.containsKey(key)){
             value = pros.getProperty(key);

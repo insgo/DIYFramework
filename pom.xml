@@ -89,7 +89,7 @@
             <scope>test</scope>
         </dependency>
 
-        <!--添加SLF4J依赖，用于提供日志API，且使用Log4j作为实现-->
+        <!--添加SLF4J框架依赖，用于提供日志API，且使用Log4j作为实现-->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
@@ -123,12 +123,20 @@
             <version>1.6</version>
         </dependency>
 
-        <!--由于使用JDBC或者DBUtils的方式来操作数据库都是没有池这种概率的，因此我们使用DBCP的数据库连接池的框架-->
+        <!--由于使用JDBC或者DBUtils的方式来操作数据库都是没有池的，因此我们使用DBCP的数据库连接池的框架-->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-dbcp2</artifactId>
             <version>2.0.1</version>
         </dependency>
+
+        <!--为了返回JSON数据，使用Json序列化工具-->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.8.5</version>
+        </dependency>
+
     </dependencies>
 
 
