@@ -3,14 +3,17 @@ package cn.exi.helper;
 
 import cn.exi.utils.CollectionUtil;
 import cn.exi.utils.PropsUtil;
+import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
 import org.apache.commons.dbutils.handlers.MapListHandler;
 import org.apache.log4j.Logger;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +30,9 @@ public final class DatabaseHelper {
 
     private static final QueryRunner QUERY_RUNNER = new QueryRunner();
 
-    private static final ThreadLocal<Connection> CONNECTION_THREAD_LOCAL = new ThreadLocal<Connection>();
+    private static final ThreadLocal<Connection> CONNECTION_THREAD_LOCAL;
+    //增加数据库连接池
+    private static final BasicDataSource DATA_SOURCE;
 
     private static final String DRIVER;
     private static final String URL;
@@ -36,12 +41,23 @@ public final class DatabaseHelper {
 
     //1.加载数据库连接所需要的参数
     static {
+        CONNECTION_THREAD_LOCAL = new ThreadLocal<Connection>();
+
         Properties jdbcConfig = PropsUtil.loadProps("jdbc.properties");
         DRIVER = jdbcConfig.getProperty("jdbc.driver");
         URL = jdbcConfig.getProperty("jdbc.url");
         USERNAME = jdbcConfig.getProperty("jdbc.username");
         PASSWORD = jdbcConfig.getProperty("jdbc.password");
 
+        /**
+         * 通过设置driver 、url 、usemame 、password 来初始化
+         BasicDataSource ，并调用其getConnection 方法即可获取数据库连接。
+         */
+        DATA_SOURCE = new BasicDataSource();
+        DATA_SOURCE.setDriverClassName(DRIVER);
+        DATA_SOURCE.setUrl(URL);
+        DATA_SOURCE.setUsername(USERNAME);
+        DATA_SOURCE.setPassword(PASSWORD);
         try {
             Class.forName(DRIVER);
         } catch (ClassNotFoundException e) {
@@ -57,15 +73,17 @@ public final class DatabaseHelper {
     public static Connection getConnection() {
         //使用JDBC来操作数据库
         Connection connection = CONNECTION_THREAD_LOCAL.get();
-        try {
-            connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            log.error("get connection failure", e);
-            throw new RuntimeException(e);
-        } finally {
-            CONNECTION_THREAD_LOCAL.set(connection);
+        if (connection == null) {
+            try {
+//            connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+                connection = DATA_SOURCE.getConnection();
+            } catch (SQLException e) {
+                e.printStackTrace();
+                log.error("get connection failure", e);
+                throw new RuntimeException(e);
+            } finally {
+                CONNECTION_THREAD_LOCAL.set(connection);
+            }
         }
         return connection;
     }
@@ -176,6 +194,7 @@ public final class DatabaseHelper {
 
     /**
      * 执行查询语句
+     *
      * @param sql
      * @param params
      * @return
@@ -194,19 +213,20 @@ public final class DatabaseHelper {
 
     /**
      * 执行更新语句
-     * @param sql sql语句
+     *
+     * @param sql    sql语句
      * @param params 参数
      * @return 返回更新条数
      */
-    public static int executeUpdate(String sql,Object... params){
-        int rows =0;
+    public static int executeUpdate(String sql, Object... params) {
+        int rows = 0;
         try {
             Connection conn = getConnection();
-            rows = QUERY_RUNNER.update(conn,sql,params);
-        }catch (SQLException e){
-            log.error("execute update failure",e);
+            rows = QUERY_RUNNER.update(conn, sql, params);
+        } catch (SQLException e) {
+            log.error("execute update failure", e);
             throw new RuntimeException(e);
-        }finally {
+        } finally {
             closeConnection();
         }
         return rows;
@@ -214,12 +234,13 @@ public final class DatabaseHelper {
 
     /**
      * 插入实体
+     *
      * @param entityClass
      * @param fileMap
      * @param <T>
      * @return
      */
-    public static <T> boolean insertEntity(Class<T> entityClass,Map<String,Object> fileMap){
+    public static <T> boolean insertEntity(Class<T> entityClass, Map<String, Object> fileMap) {
         if (CollectionUtil.isEmpty(fileMap)) {
             log.error("can not insert entity:filedMap is empty");
             return false;
@@ -227,62 +248,81 @@ public final class DatabaseHelper {
         String sql = "insert into" + getTableName(entityClass);
         StringBuilder columns = new StringBuilder("(");
         StringBuilder values = new StringBuilder("(");
-        for (String fieldName:fileMap.keySet()
-             ) {
+        for (String fieldName : fileMap.keySet()
+                ) {
             columns.append(fieldName).append(", ");
             values.append("?, ");
         }
-        columns.replace(columns.lastIndexOf(", "),columns.length(),")");
-        values.replace(values.lastIndexOf(", "),values.length(),")");
-        sql +=columns+"values "+values;
+        columns.replace(columns.lastIndexOf(", "), columns.length(), ")");
+        values.replace(values.lastIndexOf(", "), values.length(), ")");
+        sql += columns + "values " + values;
 
         Object[] params = fileMap.values().toArray();
-        return executeUpdate(sql,params) ==1;
+        return executeUpdate(sql, params) == 1;
     }
 
 
     /**
      * 更新数据
+     *
      * @param entityClass
      * @param filedMap
      * @param <T>
      * @return
      */
-    public static <T> boolean updateEntity(Class<T> entityClass,long id,Map<String,Object> filedMap){
+    public static <T> boolean updateEntity(Class<T> entityClass, long id, Map<String, Object> filedMap) {
         if (CollectionUtil.isEmpty(filedMap)) {
             log.error("can not update entity:filedMap is empty");
             return false;
         }
-        String sql = "update " + getTableName(entityClass)+ " set ";
+        String sql = "update " + getTableName(entityClass) + " set ";
         StringBuilder columns = new StringBuilder();
         StringBuilder values = new StringBuilder();
-        for (String fieldName:filedMap.keySet()
+        for (String fieldName : filedMap.keySet()
                 ) {
             columns.append(fieldName).append("=?, ");
         }
-        sql +=columns.substring(0,columns.lastIndexOf(", "))+" where id=? ";
+        sql += columns.substring(0, columns.lastIndexOf(", ")) + " where id=? ";
 
         List<Object> paramList = new ArrayList<>();
-       paramList.addAll(filedMap.values());
-       paramList.add(id);
-       Object[] params = paramList.toArray();
-        return executeUpdate(sql,params) ==1;
+        paramList.addAll(filedMap.values());
+        paramList.add(id);
+        Object[] params = paramList.toArray();
+        return executeUpdate(sql, params) == 1;
     }
 
     /**
      * 删除实体
+     *
      * @param entityClass
      * @param id
      * @param <T>
      * @return
      */
 
-    public static <T> boolean deleteEntity(Class<T> entityClass,long id){
-        String sql = "delete from " +getTableName(entityClass)+ " where id = ?";
-        return executeUpdate(sql,id) ==1;
+    public static <T> boolean deleteEntity(Class<T> entityClass, long id) {
+        String sql = "delete from " + getTableName(entityClass) + " where id = ?";
+        return executeUpdate(sql, id) == 1;
     }
 
     private static <T> String getTableName(Class<T> entityClass) {
-            return entityClass.getSimpleName();
+        return entityClass.getSimpleName();
+    }
+
+    /**
+     * 执行SQL文件
+     */
+    public static void executeSQLFile(String filePath){
+        InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(filePath);
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is));
+        try {
+            String sql;
+            while ((sql = bufferedReader.readLine())!=null){
+                executeUpdate(sql);
+            }
+        }catch (Exception e){
+            log.error("execute sql file failure",e);
+            throw new RuntimeException(e);
+        }
     }
 }

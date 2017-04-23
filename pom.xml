@@ -122,6 +122,13 @@
             <artifactId>commons-dbutils</artifactId>
             <version>1.6</version>
         </dependency>
+
+        <!--由于使用JDBC或者DBUtils的方式来操作数据库都是没有池这种概率的，因此我们使用DBCP的数据库连接池的框架-->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-dbcp2</artifactId>
+            <version>2.0.1</version>
+        </dependency>
     </dependencies>
 
 

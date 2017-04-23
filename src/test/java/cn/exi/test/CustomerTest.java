@@ -24,6 +24,7 @@ public class CustomerTest {
     @Before
     public void init(){
         //TODO 初始化数据库
+        //DatabaseHelper.executeSQLFile("sql/customer_init.sql");
     }
 
     @Test
