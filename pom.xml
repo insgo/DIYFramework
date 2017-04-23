@@ -116,7 +116,12 @@
             <version>3.2.1</version>
         </dependency>
 
-
+        <!--DbUtils 的类库，为我们提供了一个JDBC 的封装,简化了数据库的连接-->
+        <dependency>
+            <groupId>commons-dbutils</groupId>
+            <artifactId>commons-dbutils</artifactId>
+            <version>1.6</version>
+        </dependency>
     </dependencies>
 
 

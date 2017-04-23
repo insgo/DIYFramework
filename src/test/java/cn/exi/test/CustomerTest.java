@@ -29,7 +29,13 @@ public class CustomerTest {
     @Test
     public void getCustomerListTest() throws Exception{
         List<Customer> customerList = customerService.getCustomerList("cu");
-        Assert.assertEquals(2,customerList.size());
+        System.out.println("size>>>>>"+customerList.size());
+    }
+
+    @Test
+    public void getCustomerTest() throws Exception{
+        Customer customer = customerService.getCustomerById(1);
+        System.out.println(customer.toString());
     }
 
     @Test

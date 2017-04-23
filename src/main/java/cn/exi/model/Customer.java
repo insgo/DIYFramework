@@ -7,22 +7,25 @@ public class Customer {
 
     private long id; //用户ID
     private String name; //用户名
-    private String contact; //联系地址
+    private String contract; //联系地址
     private String telephone; //电话号码
     private String email; //邮件地址
     private String remark;//备注
 
-    public Customer(String name, String contact, String telephone, String email, String remark) {
+    public Customer(String name, String contract, String telephone, String email, String remark) {
         this.name = name;
-        this.contact = contact;
+        this.contract = contract;
         this.telephone = telephone;
         this.email = email;
         this.remark = remark;
     }
 
-    public Customer(String name, String contact) {
+    public Customer(String name, String contract) {
         this.name = name;
-        this.contact = contact;
+        this.contract = contract;
+    }
+
+    public Customer() {
     }
 
     public long getId() {
@@ -42,11 +45,11 @@ public class Customer {
     }
 
     public String getContact() {
-        return contact;
+        return contract;
     }
 
     public void setContact(String contact) {
-        this.contact = contact;
+        this.contract = contact;
     }
 
     public String getTelephone() {
@@ -78,7 +81,7 @@ public class Customer {
         return "Customer{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
-                ", contact='" + contact + '\'' +
+                ", contact='" + contract + '\'' +
                 ", telephone='" + telephone + '\'' +
                 ", email='" + email + '\'' +
                 ", remark='" + remark + '\'' +
